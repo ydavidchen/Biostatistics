@@ -72,7 +72,6 @@ q3 <- ggplot(RACE_data.end, aes(abc_average, fill=TreatmentCode, color=Treatment
   theme_bw()
 
 grid.arrange(q1,q3,ncol=1)
-# grid.arrange(q1,q2, q3,ncol=1) #q2 is in a different script
 
 #------------------------------------Pairwise t-tests------------------------------------
 t.test(
@@ -116,6 +115,7 @@ gee2.tab <- as.data.frame(cbind(
   confint(gee2)
 ))
 colnames(gee2.tab)[colnames(gee2.tab) %in% c("lwr", "upr")] <- c("CI_lower", "CI.upper")
-gee1.tab <- round(gee2.tab, 2)
+gee2.tab <- round(gee2.tab, 2)
 gee2.tab$`Pr(>|W|)`[gee2.tab$`Pr(>|W|)`==0] <- "<2E-16"
+
 grid.arrange(tableGrob(gee2.tab))
