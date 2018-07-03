@@ -1,29 +1,19 @@
 ##############################################################################################################
-# Cardiology Project (for Dr. Rick Hoffman)
+# Initial Data Cleaning
 # Script author: David Chen
+# Script maintainer: David Chen
 # Date: 03/10/2018
 # Notes:
-# 1. Question: What is the natural history of the IVC filter legs with regard to penetration beyond wall of the IVC?
-# 2. Parameters: 
-# a. Filter identified by B+C:patient number, DateProc  
-# b. Specific limb of filter identified by B+C+BP: patient number, DateProc, strt
-# c. Evaluation study of specific limb identified by : B+C+BP+BQ: patient number, DateProc, strt, dCT
-# d. Potential confounder/EM:  Q=2 (cancer), AA=1 (thrombosis of filter), AL=1 (anticoagulation), 
-#    E=mm diameter(initial IVC), C-F = age at placement, N=gender, I=1 (VTE), S= 2 or 3 (femoral access), BL > +/-20 (migration)
-# 3. Columns (Excel sheet column ID):
-# B=2, C="DateProc", E="dIVC", F="DOB", I="indic", N="sex", S="access",
-# BP="strt", AA="newIVCocl", AL="ac", BQ="dCT"
 ##############################################################################################################
 
 rm(list=ls())
-
 library(plyr); library(dplyr)
 library(gdata)
 library(lubridate)
 library(WriteXLS)
 
 ## Data loading:
-setwd("~/Dropbox (Christensen Lab)/Christensen Lab - 2018/QBS123_2018/Cardiology_Proj/")
+easycsv::choose_dir();
 patientRec <- read.xls("FilterPerf_legs030118.xlsx", stringsAsFactors=F);
 patientRec <- patientRec[1:1520, 1:79];
 patientRec[patientRec==""] <- NA;

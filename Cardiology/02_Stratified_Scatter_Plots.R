@@ -1,12 +1,12 @@
 ##############################################################################################################
-# Cardiology Data: Scatter Plots
+# Pairwise Scatter Plots
 # Script author: David Chen
+# Script maintainer: David Chen
 # Date: 04/02/2018
 # Notes:
 ##############################################################################################################
 
 rm(list=ls())
-
 library(data.table)
 library(gdata)
 library(GGally)
@@ -14,7 +14,8 @@ library(ggplot2)
 library(pheatmap)
 library(reshape2)
 
-recCompl <- read.csv("~/Dropbox (Christensen Lab)/Christensen Lab - 2018/QBS123_2018/Cardiology_Proj/041918_Cleaned_up_data_for_remodeling.csv", stringsAsFactors=F);
+easycsv::choose_dir();
+recCompl <- read.csv("041918_Cleaned_up_data_for_remodeling.csv", stringsAsFactors=F);
 strtDat <- recCompl[ , c("number","strt","Scan_date","N1")];
 strtDat$ID <- paste(strtDat$number, strtDat$Scan_date, sep="_");
 strtDat$number <- strtDat$Scan_date <- NULL;

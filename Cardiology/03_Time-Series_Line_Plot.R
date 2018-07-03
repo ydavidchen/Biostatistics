@@ -1,12 +1,12 @@
 ##############################################################################################################
-# Cardiology Data: Line Plot over Days
+# Line Plot over Time (days)
 # Script author: David Chen
+# Script maintainer: David Chen
 # Date: 04/23/2018
 # Notes:
 ##############################################################################################################
 
 rm(list=ls())
-
 library(data.table)
 library(gdata)
 library(ggplot2)
@@ -14,7 +14,8 @@ library(lubridate)
 library(reshape2)
 
 ## Load data:
-recCompl <- read.csv("~/Dropbox (Christensen Lab)/Christensen Lab - 2018/QBS123_2018/Cardiology_Proj/041918_Cleaned_up_data_for_remodeling.csv", stringsAsFactors=F);
+easycsv::choose_dir();
+recCompl <- read.csv("041918_Cleaned_up_data_for_remodeling.csv", stringsAsFactors=F);
 strtDat <- recCompl[ , c("number","strt","Scan_date","N1")];
 strtDat$Day_abs <- as.numeric(as.Date(strtDat$Scan_date));
 

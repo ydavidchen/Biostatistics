@@ -1,12 +1,12 @@
 ##############################################################################################################
-# Cardiology Data Cleaning for Random Effect Modeling
+# Data Cleaning & Exploration
 # Script author: David Chen
+# Script maintainer: David Chen
 # Date: 03/15/2018; 04/01/2018
 # Notes:
 ##############################################################################################################
 
 rm(list=ls())
-
 library(plyr); library(dplyr)
 library(gdata)
 library(ggplot2)
@@ -15,7 +15,8 @@ library(reshape2)
 library(tableone)
 
 ## Load cleaned, resaved data:
-patientRec <- read.csv("~/Dropbox (Christensen Lab)/Christensen Lab - 2018/QBS123_2018/Cardiology_Proj/FilterPerf_legs030118_cleaned.csv", stringsAsFactors=F)
+easycsv::choose_dir()
+patientRec <- read.csv("FilterPerf_legs030118_cleaned.csv", stringsAsFactors=F)
 patientRec[patientRec == ""] <- NA;
 
 #------------------------------------Table One------------------------------------
@@ -40,13 +41,6 @@ recCompl <- patientRec; #initialize
 recCompl <- recCompl[ , c("number","Scan_date","strt","N1")];
 recCompl <- subset(recCompl, ! is.na(Scan_date));
 rownames(recCompl) <- NULL;
-class(recCompl$Scan_date)
-
-## Drop patients with fewer than 2 records:
-## Note: no patients here had fewer than 2 records
-# patDrop <- as.data.frame(table(recCompl$number));
-# patDrop <- patDrop$Var1[patDrop$Freq < 2];
-# recCompl <- subset(recCompl, ! number %in% patDrop);
 
 ## Add temporal order:
 recCompl$Scan_date <- as.Date(factor(recCompl$Scan_date));
