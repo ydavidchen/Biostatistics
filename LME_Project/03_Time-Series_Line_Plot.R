@@ -14,7 +14,8 @@ library(lubridate)
 library(reshape2)
 
 ## Load data:
-easycsv::choose_dir();
+path <- easycsv::choose_dir();
+setwd(path);
 recCompl <- read.csv("041918_Cleaned_up_data_for_remodeling.csv", stringsAsFactors=F);
 strtDat <- recCompl[ , c("number","strt","Scan_date","N1")];
 strtDat$Day_abs <- as.numeric(as.Date(strtDat$Scan_date));

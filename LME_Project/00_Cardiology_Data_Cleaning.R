@@ -13,7 +13,8 @@ library(lubridate)
 library(WriteXLS)
 
 ## Data loading:
-easycsv::choose_dir();
+path <- easycsv::choose_dir();
+setwd(path); 
 patientRec <- read.xls("FilterPerf_legs030118.xlsx", stringsAsFactors=F);
 patientRec <- patientRec[1:1520, 1:79];
 patientRec[patientRec==""] <- NA;

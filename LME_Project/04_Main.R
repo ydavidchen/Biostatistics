@@ -13,7 +13,8 @@ library(MuMIn)
 library(doParallel); registerDoParallel(detectCores() - 1)
 
 ## Load data:
-easycsv::choose_dir()
+path <- easycsv::choose_dir();
+setwd(path); 
 recCompl <- read.csv("FilterPerf_legs060118_cleaned.csv", stringsAsFactors=FALSE); 
 
 ## Time series regression:
@@ -52,3 +53,5 @@ pseudoR_sq <- rbind(
 );
 rownames(pseudoR_sq) <- c("Linear", "Polynomial", "Logarithmic");
 pseudoR_sq 
+
+sessionInfo()

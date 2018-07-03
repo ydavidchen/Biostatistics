@@ -14,7 +14,8 @@ library(ggplot2)
 library(pheatmap)
 library(reshape2)
 
-easycsv::choose_dir();
+path <- easycsv::choose_dir();
+setwd(path); 
 recCompl <- read.csv("041918_Cleaned_up_data_for_remodeling.csv", stringsAsFactors=F);
 strtDat <- recCompl[ , c("number","strt","Scan_date","N1")];
 strtDat$ID <- paste(strtDat$number, strtDat$Scan_date, sep="_");

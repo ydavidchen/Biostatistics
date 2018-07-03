@@ -15,11 +15,11 @@ library(reshape2)
 library(tableone)
 
 ## Load cleaned, resaved data:
-easycsv::choose_dir()
+path <- easycsv::choose_dir();
+setwd(path); 
 patientRec <- read.csv("FilterPerf_legs030118_cleaned.csv", stringsAsFactors=F)
 patientRec[patientRec == ""] <- NA;
 
-#------------------------------------Table One------------------------------------
 ## Select unique records for table one and dropping:
 recUniq <- patientRec[! duplicated(patientRec$number), ];
 
@@ -36,7 +36,7 @@ myTableOne <- CreateTableOne(
 y <- print(myTableOne, showAllLevels=TRUE); 
 # write.csv(y, file="~/Downloads/031518_Patient_records_table1.csv", row.names=T, quote=F)
 
-#------------------------------------Random effect modeling using mean of 4 filter legs------------------------------------
+## Random effect modeling using mean of 4 filter legs:
 recCompl <- patientRec; #initialize
 recCompl <- recCompl[ , c("number","Scan_date","strt","N1")];
 recCompl <- subset(recCompl, ! is.na(Scan_date));
@@ -56,7 +56,7 @@ if(anyNA(recCompl$days)) {
 } else {
   print("No missing value in dates.")
 }
-recCompl$years <- recCompl$days / 365;
+recCompl$years <- recCompl$days / 365.25;
 
 ## Merge in covariates:
 recCompl <- merge(
@@ -67,7 +67,7 @@ recCompl <- merge(
 );
 # write.csv(recCompl, file="~/Dropbox (Christensen Lab)/Christensen Lab - 2018/QBS123_2018/Cardiology_Proj/041918_Cleaned_up_data_for_remodeling.csv", row.names=F, quote=F)
 
-## Time series regression accounting for autocorrelation (random effect):
+## Time series regression for selected model:
 fitRE <- lmer(
   N1 ~ years + (1 | number / strt) + Age + sex + dIVC + Thrombosis + Anticoagulation + Cancer, 
   data = recCompl
