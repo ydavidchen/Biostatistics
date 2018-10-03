@@ -42,8 +42,8 @@ sLog <- summary(fitLogRE); #P-value requires lmerTest
 sLog
 
 ## Likelihood Ratio Test:
-anova(fitRE, fitPolyRE, test="Chisq")
 anova(fitRE, fitLogRE, test="Chisq")
+anova(fitRE, fitPolyRE, test="Chisq")
 
 ## Summary of pseudo R-squared
 pseudoR_sq <- rbind(
