@@ -2,12 +2,19 @@
 # Script author: David Chen
 # Date: 03/21/18; 09/25/18
 # Notes:
-# -- Assume inter-study heterogeneity is small, i.e. 0
+# -- Assumption: Sampling variance is small, i.e. 0
 
 rm(list=ls());
+library(ggplot2);
 library(metafor);
 library(pheatmap);
 MY_COLORS <- colorRampPalette(c("gray88", "gray33", "black"))(128); 
+myForestTheme <- theme_bw() +
+  theme(axis.text=element_text(size=21,color="black"), 
+        axis.title.y=element_blank(), axis.title.x=element_text(size=27,color="black"),
+        legend.key.width=unit(2.5,"line"), #legend spacing
+        legend.position="top", legend.title=element_text(size=21,color="black",face="bold"), legend.text=element_text(size=18, color="black"));
+
 
 load5studies <- function(path="~/Dropbox (Christensen Lab)/Christensen Lab - 2018/StatsConsulting_2018/Oncology_Nursing_Meta_Analysis/030918_Studies_included.csv") {
   meta5 <- read.csv(path, row.names=NULL, header=FALSE, stringsAsFactors=FALSE);
@@ -79,6 +86,18 @@ runCustomMetaAnalysis <- function(meta5, weightCol="Ratio_of_completed", conditi
     method = "ML"
   );
   print(res.noGoalSetting);
+  
+  
+  res <- data.frame(
+    Category = c("All", "Has Goal Setting", "No Goal Setting"),
+    Estimate = c(res.all5$b, res.hasGoalSetting$b, res.noGoalSetting$b),
+    ci.lb = c(res.all5$ci.lb, res.hasGoalSetting$ci.lb, res.noGoalSetting$ci.lb),
+    ci.ub = c(res.all5$ci.ub, res.hasGoalSetting$ci.ub, res.noGoalSetting$ci.ub),
+    P = c(res.all5$pval, res.hasGoalSetting$pval, res.noGoalSetting$pval)
+  );
+  res$isSig <- res$P < 0.05; 
+  
+  return(res);
 }
 
 main <- function() {
@@ -98,7 +117,18 @@ main <- function() {
   );
   dev.off();
   
-  ## Run custom analysis:
-  runCustomMetaAnalysis(meta5);
-  
+  ## Run custom meta analysis:
+  df4Forest <- runCustomMetaAnalysis(meta5);
+  df4Forest$Category <- factor(df4Forest$Category, levels=c("No Goal Setting","Has Goal Setting","All"));
+  ggplot(df4Forest, aes(x=Category, y=Estimate, ymin=ci.lb, ymax=ci.ub)) +
+    geom_pointrange(size=1.5, position=position_dodge(width=0.5)) +
+    geom_hline(yintercept=0, size=0.75, linetype="dashed") +
+    labs(y="Avg. % PA increase") +
+    scale_color_manual(values=c("royalblue","red")) +
+    scale_y_continuous(breaks=seq(-20,100,by=20), limits=c(-20,100)) +
+    myForestTheme +
+    coord_flip();
+  ggsave("~/Downloads/Forest_plot.png", height=8.27, width=11.69);
 }
+
+main(); 
