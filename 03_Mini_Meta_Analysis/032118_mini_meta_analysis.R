@@ -3,6 +3,7 @@
 # Date: 03/21/18; 09/25/18
 # Notes:
 # -- Assumption: Sampling variance is small, i.e. 0
+# -- Data set had typo, which was fixed on 10/29/18
 
 rm(list=ls());
 library(ggplot2);
@@ -16,7 +17,7 @@ myForestTheme <- theme_bw() +
         legend.position="top", legend.title=element_text(size=21,color="black",face="bold"), legend.text=element_text(size=18, color="black"));
 
 
-load5studies <- function(path="~/Dropbox (Christensen Lab)/Christensen Lab - 2018/StatsConsulting_2018/Oncology_Nursing_Meta_Analysis/030918_Studies_included.csv") {
+load5studies <- function(path="~/Dropbox (Christensen Lab)/Christensen Lab - 2018/StatsConsulting_2018/Oncology_Nursing_Meta_Analysis/103018_Studies_included_error_fixed.csv") {
   meta5 <- read.csv(path, row.names=NULL, header=FALSE, stringsAsFactors=FALSE);
   meta5 <- t(meta5);
   colnames(meta5) <- unlist(meta5[1, ]);
