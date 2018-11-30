@@ -7,6 +7,8 @@
 # -- Run this script in RStudio
 
 rm(list=ls());
+library(psych);
+library(pheatmap);
 fixInNamespace("draw_colnames","pheatmap");  #vjust = 1, hjust = 0.5, rot = 0
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path));
 source("Helperfunctions_for_RHXG_proj.R");
@@ -30,7 +32,7 @@ custom_heatmap <- function(data, ...) {
   return(ph);
 }
 
-run_mcnemars <- function(data1, data2, stratMat, adjMet="fdr", sigThresh=0.05) {
+analyze_concord <- function(data1, data2, stratMat, adjMet="fdr", sigThresh=0.05) {
   #'@description Run independent McNemar's test by patient
   #'@param data1,data2 R matrix or data.frames for data types. Must be matched!
   #'@param stratMat Indicator matrix to stratify (here, it's confidence)
@@ -42,19 +44,22 @@ run_mcnemars <- function(data1, data2, stratMat, adjMet="fdr", sigThresh=0.05) {
   for(L in colnames(stratMat)) {
     ## Overall:
     res <- helper_mcnemar(data1[ , L], data2[ , L]);
-    resOverall <- rbind( resOverall, c(Proportion=1, Physician=L, Chisq=res$statistic, Pval=res$p.value));
+    ck <- psych::cohen.kappa(table(data1[ , L], data2[ , L])); 
+    resOverall <- rbind(resOverall, c(Proportion=1, Physician=L, Kappa=ck$weighted.kappa, Chisq=res$statistic, Pval=res$p.value));
     rm(res);
     
     ## Confident stratum:
     obs_confid <- rownames(self_conf)[stratMat[,L] == 1];
     res <- helper_mcnemar(data1[obs_confid, L], data2[obs_confid, L]);
-    resConfid <- rbind(resConfid, c(Proportion=length(obs_confid)/n, Physician=L, Chisq=res$statistic, Pval=res$p.value));
-    rm(res);
+    ck <- psych::cohen.kappa(table(data1[obs_confid, L], data2[obs_confid, L]));
+    resConfid <- rbind(resConfid, c(Proportion=length(obs_confid)/n, Physician=L, Kappa=ck$weighted.kappa, Chisq=res$statistic, Pval=res$p.value));
+    rm(res, ck);
     
     ## Ambiguous stratum:
     obs_ambig <- rownames(self_conf)[stratMat[,L] == 0];
     res <- helper_mcnemar(data1[obs_ambig, L], data2[obs_ambig, L]);
-    resAmbig <- rbind(resAmbig, c(Proportion=length(obs_ambig)/n, Physician=L, Chisq=res$statistic, Pval=res$p.value)); 
+    ck <- psych::cohen.kappa(table(data1[obs_ambig, L], data2[obs_ambig, L])); 
+    resAmbig <- rbind(resAmbig, c(Proportion=length(obs_ambig)/n, Physician=L, Kappa=ck$weighted.kappa, Chisq=res$statistic, Pval=res$p.value)); 
   }
   
   ## Final processing & packaging for export:
@@ -96,6 +101,6 @@ custom_heatmap(self_conf, main="Self-reported Confidence");
 
 ## Inferential statistics:
 ## Consider stratified analysis
-resList <- run_mcnemars(xg_data, rh_data, self_conf);
+resList <- analyze_concord(xg_data, rh_data, self_conf);
 resList
-WriteXLS::WriteXLS(resList, ExcelFileName="~/Downloads/112918_McNemar_tests.xls"); 
+WriteXLS::WriteXLS(resList, ExcelFileName="~/Downloads/113018_McNemar_tests.xls"); 
