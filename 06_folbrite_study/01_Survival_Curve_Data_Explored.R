@@ -1,75 +1,71 @@
-# Phase II Clinical Trial Analysis: Progression Free Survival
+# Phase II Clinical Trial Analysis: Progression Free Survival (PFS)
 # Script author: Y. David Chen
 # Script maintainer: Y. David Chen
-# Date: 06/01/18
+# Copyright (c) 2018 @ydavidchen
+# Dates: 06/02/18 (init), 01/06/19 (revision)
 # Notes:
 
-rm(list=ls()); 
-library(ggsci);
+rm(list=ls());
 library(stringr);
-library(survival);
-library(survminer);
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path));
+if(interactive()) setwd(dirname(rstudioapi::getActiveDocumentContext()$path));
 source("helper_functions_folbrite.R");
 
 ## Load data:
 data <- load_data();
-data <- subset(data, ! is.na(PFS.Days..n.36.)); 
-data$years <- data$PFS.Days..n.36. / 365.25;
 
-## Initialize storage object:
+## Initialize storage object for survival results:
 pfsModels <- list();
 
 #--------------------------------------Curve 1: PFS based on post BR response (CR/CRu vs. PR)--------------------------------------
 pfs_fu <- data;
 table(pfs_fu$PostBR, useNA="always")
-pfs_fu$Post.BR[pfs_fu$PostBR %in% c("CRu", "CR")] <- "CR/CRu (N=20)";
-pfs_fu$Post.BR[pfs_fu$PostBR %in% c("PR", "SD")] <- "PR (N=16)"; 
+pfs_fu$Post.BR[pfs_fu$PostBR %in% c("CRu", "CR")] <- "CR/CRu (N=22)";
+pfs_fu$Post.BR[pfs_fu$PostBR %in% c("PR", "SD")] <- "PR/SD (N=17)"; 
 table(pfs_fu$Post.BR) #check
 pfs_fu$Post.BR <- as.factor(pfs_fu$Post.BR); 
 
 pfsModels[["postBR"]] <- survfit(
-  Surv(time=years, event=Event.Free.vs..Progression..n.39.) ~ Post.BR, 
+  Surv(time=pfs_years, event=pfs_status) ~ Post.BR, 
   data = pfs_fu
 );
 pfsModels[["postBR"]]
 
 ## Question from Darcie/Erick:
-summary(pfsModels[["postBR"]], times=2) #24months
-summary(pfsModels[["postBR"]], times=2.5) #30months
+summary(pfsModels[["postBR"]], times=2) #24 months
+summary(pfsModels[["postBR"]], times=2.5) #30 months
 
 #--------------------------------------Curve 2: PFS based on FLIPI1 (low, int, high)--------------------------------------
 pfs_flipi1 <- data;
 table(pfs_flipi1$FLIPI1.low..int..high)
 
 pfs_flipi1$FLIPI1 <- pfs_flipi1$FLIPI1.low..int..high;
-pfs_flipi1$FLIPI1 <- gsub("low", "Low (N=6)", pfs_flipi1$FLIPI1); 
-pfs_flipi1$FLIPI1 <- gsub("int", "Intermediate (N=16)", pfs_flipi1$FLIPI1); 
-pfs_flipi1$FLIPI1 <- gsub("high", "High (N=14)", pfs_flipi1$FLIPI1); 
+pfs_flipi1$FLIPI1 <- gsub("low", "Low (N=7)", pfs_flipi1$FLIPI1); 
+pfs_flipi1$FLIPI1 <- gsub("int", "Intermediate (N=17)", pfs_flipi1$FLIPI1); 
+pfs_flipi1$FLIPI1 <- gsub("high", "High (N=15)", pfs_flipi1$FLIPI1); 
 
-pfs_flipi1$FLIPI1 <- factor(pfs_flipi1$FLIPI1, levels=c("Low (N=6)","Intermediate (N=16)","High (N=14)")); 
+pfs_flipi1$FLIPI1 <- factor(pfs_flipi1$FLIPI1, levels=c("Low (N=7)","Intermediate (N=17)","High (N=15)")); 
 table(pfs_flipi1$FLIPI1)
 
 pfsModels[["FLIPI1"]] <- survfit(
-  Surv(time=years, event=Event.Free.vs..Progression..n.39.) ~ FLIPI1, 
+  Surv(time=pfs_years, event=pfs_status) ~ FLIPI1, 
   data = pfs_flipi1
 );
 pfsModels[["FLIPI1"]]
 
 #--------------------------------------Curve 4: PFS based on FLIPI2 (low, int, high)--------------------------------------
 pfs_flipi2 <- data;
-table(pfs_flipi1$FLIPI2.low..int..high)
+table(pfs_flipi2$FLIPI2.low..int..high)
 
 pfs_flipi2$FLIPI2 <- pfs_flipi1$FLIPI2.low..int..high;
-pfs_flipi2$FLIPI2 <- gsub("low", "Low (N=5)", pfs_flipi2$FLIPI2);
-pfs_flipi2$FLIPI2 <- gsub("int", "Intermediate (N=25)", pfs_flipi2$FLIPI2);
+pfs_flipi2$FLIPI2 <- gsub("low", "Low (N=6)", pfs_flipi2$FLIPI2);
+pfs_flipi2$FLIPI2 <- gsub("int", "Intermediate (N=27)", pfs_flipi2$FLIPI2);
 pfs_flipi2$FLIPI2 <- gsub("high", "High (N=6)", pfs_flipi2$FLIPI2);
 
-pfs_flipi2$FLIPI2 <- factor(pfs_flipi2$FLIPI2, c("Low (N=5)","Intermediate (N=25)","High (N=6)"));
+pfs_flipi2$FLIPI2 <- factor(pfs_flipi2$FLIPI2, c("Low (N=6)","Intermediate (N=27)","High (N=6)"));
 table(pfs_flipi2$FLIPI2)
 
 pfsModels[["FLIPI2"]] <- survfit(
-  Surv(time=years, event=Event.Free.vs..Progression..n.39.) ~ FLIPI2, 
+  Surv(time=pfs_years, event=pfs_status) ~ FLIPI2, 
   data = pfs_flipi2
 );
 pfsModels[["FLIPI2"]]
@@ -79,13 +75,13 @@ pfs_bcl2 <- data;
 table(pfs_bcl2$BCL2.positive.at.baseline)
 
 pfs_bcl2$BCL2 <- pfs_bcl2$BCL2.positive.at.baseline;
-pfs_bcl2$BCL2 <- gsub("neg", "Negative (N=26)", pfs_bcl2$BCL2);
-pfs_bcl2$BCL2 <- gsub("pos", "Positive (N=10)", pfs_bcl2$BCL2);
+pfs_bcl2$BCL2 <- gsub("neg", "Negative (N=27)", pfs_bcl2$BCL2);
+pfs_bcl2$BCL2 <- gsub("pos", "Positive (N=12)", pfs_bcl2$BCL2);
 
-pfs_bcl2$BCL2 <- factor(pfs_bcl2$BCL2, levels=c("Positive (N=10)","Negative (N=26)"));
+pfs_bcl2$BCL2 <- factor(pfs_bcl2$BCL2, levels=c("Positive (N=12)","Negative (N=27)"));
 
 pfsModels[["BCL2"]] <- survfit(
-  Surv(time=years, event=Event.Free.vs..Progression..n.39.) ~ BCL2,
+  Surv(time=pfs_years, event=pfs_status) ~ BCL2,
   data = pfs_bcl2
 );
 pfsModels[["BCL2"]] 
@@ -97,15 +93,15 @@ table(pfs_bcl2xflip1$BCL2.and.FLIPI1)
 
 pfs_bcl2xflip1$BCL2.and.FLIPI1 <- gsub("neg & high", "BCL2-, FLIPI1 high (N=10)", pfs_bcl2xflip1$BCL2.and.FLIPI1); 
 pfs_bcl2xflip1$BCL2.and.FLIPI1 <- gsub("neg & int",  "BCL2-, FLIPI1 int. (N=11)", pfs_bcl2xflip1$BCL2.and.FLIPI1); 
-pfs_bcl2xflip1$BCL2.and.FLIPI1 <- gsub("neg & low",  "BCL2-, FLIPI1 low  (N=5)", pfs_bcl2xflip1$BCL2.and.FLIPI1); 
-pfs_bcl2xflip1$BCL2.and.FLIPI1 <- gsub("pos & high", "BCL2+, FLIPI1 high (N=4)", pfs_bcl2xflip1$BCL2.and.FLIPI1); 
-pfs_bcl2xflip1$BCL2.and.FLIPI1 <- gsub("pos & int",  "BCL2+, FLIPI1 int. (N=5)", pfs_bcl2xflip1$BCL2.and.FLIPI1); 
+pfs_bcl2xflip1$BCL2.and.FLIPI1 <- gsub("neg & low",  "BCL2-, FLIPI1 low  (N=6)", pfs_bcl2xflip1$BCL2.and.FLIPI1); 
+pfs_bcl2xflip1$BCL2.and.FLIPI1 <- gsub("pos & high", "BCL2+, FLIPI1 high (N=5)", pfs_bcl2xflip1$BCL2.and.FLIPI1); 
+pfs_bcl2xflip1$BCL2.and.FLIPI1 <- gsub("pos & int",  "BCL2+, FLIPI1 int. (N=6)", pfs_bcl2xflip1$BCL2.and.FLIPI1); 
 pfs_bcl2xflip1$BCL2.and.FLIPI1 <- gsub("pos & low",  "BCL2+, FLIPI1 low  (N=1)", pfs_bcl2xflip1$BCL2.and.FLIPI1); 
 
-table(pfs_bcl2xflip1$BCL2.and.FLIPI1)
+table(pfs_bcl2xflip1$BCL2.and.FLIPI1) #check
 
 pfsModels[["BCL2xFLIPI1"]] <- survfit(
-  Surv(time=years, event=Event.Free.vs..Progression..n.39.) ~ BCL2.and.FLIPI1, 
+  Surv(time=pfs_years, event=pfs_status) ~ BCL2.and.FLIPI1, 
   data = pfs_bcl2xflip1
 );
 pfsModels[["BCL2xFLIPI1"]]
@@ -116,30 +112,34 @@ pfs_bcl2xflip2$BCL2.and.FLIPI2 <- paste(pfs_bcl2xflip2$BCL2.positive.at.baseline
 table(pfs_bcl2xflip2$BCL2.and.FLIPI2, useNA="ifany")
 
 pfs_bcl2xflip2$BCL2.and.FLIPI2 <- gsub("neg & high", "BCL2-, FLIPI2 high (N=3)", pfs_bcl2xflip2$BCL2.and.FLIPI2);
-pfs_bcl2xflip2$BCL2.and.FLIPI2 <- gsub("neg & int",  "BCL2-, FLIPI2 int. (N=18)", pfs_bcl2xflip2$BCL2.and.FLIPI2);
+pfs_bcl2xflip2$BCL2.and.FLIPI2 <- gsub("neg & int",  "BCL2-, FLIPI2 int. (N=19)", pfs_bcl2xflip2$BCL2.and.FLIPI2);
 pfs_bcl2xflip2$BCL2.and.FLIPI2 <- gsub("neg & low",  "BCL2-, FLIPI2 low  (N=5)", pfs_bcl2xflip2$BCL2.and.FLIPI2);
 pfs_bcl2xflip2$BCL2.and.FLIPI2 <- gsub("pos & high", "BCL2+, FLIPI2 high (N=3)", pfs_bcl2xflip2$BCL2.and.FLIPI2);
-pfs_bcl2xflip2$BCL2.and.FLIPI2 <- gsub("pos & int",  "BCL2+, FLIPI2 int. (N=7)", pfs_bcl2xflip2$BCL2.and.FLIPI2);
+pfs_bcl2xflip2$BCL2.and.FLIPI2 <- gsub("pos & int",  "BCL2+, FLIPI2 int. (N=8)", pfs_bcl2xflip2$BCL2.and.FLIPI2);
+pfs_bcl2xflip2$BCL2.and.FLIPI2 <- gsub("pos & low",  "BCL2+, FLIPI2 low. (N=1)", pfs_bcl2xflip2$BCL2.and.FLIPI2);
 
 table(pfs_bcl2xflip2$BCL2.and.FLIPI2 )
 
 pfsModels[["BCL2&FLIPI2"]] <- survfit(
-  Surv(time=years, event=Event.Free.vs..Progression..n.39.) ~ BCL2.and.FLIPI2, 
+  Surv(time=pfs_years, event=pfs_status) ~ BCL2.and.FLIPI2, 
   data = pfs_bcl2xflip2
 );
 pfsModels[["BCL2&FLIPI2"]]
 
 #--------------------------------------Curve 11: Post-RIT--------------------------------------
-pfs_rit <- subset(data, PostRIT != "PD");
+pfs_rit <- data; 
+# pfs_rit <- subset(data, PostRIT != "PD");
 table(pfs_rit$PostRIT, useNA="ifany")
 pfs_rit$Post.RIT[pfs_rit$PostRIT %in% c("CR","CRu")] <- "CR/CRu (N=30)";
-pfs_rit$Post.RIT[pfs_rit$PostRIT == "PR"] <- "PR (N=5)";
+pfs_rit$Post.RIT[pfs_rit$PostRIT %in% c("PR","PD")] <- "PR/PD (N=6)";
+pfs_rit$Post.RIT[pfs_rit$PostRIT == "NE"] <- "NE (N=3)";
 table(pfs_rit$Post.RIT, useNA="ifany")
 
 pfsModels[["postRIT"]] <- survfit(
-  Surv(time=years, event=Event.Free.vs..Progression..n.39.) ~ Post.RIT, 
+  Surv(time=pfs_years, event=pfs_status) ~ Post.RIT, 
   data = pfs_rit
 );
+pfsModels[["postRIT"]] 
 
 #--------------------------------------Data visualization--------------------------------------
 for(m in pfsModels) {
@@ -165,11 +165,11 @@ for(m in pfsModels) {
     size = 1.5,
     alpha = 0.7,
     ## Labels:
-    legend = c(0.7, 0.2), #rel. position
+    legend = c(0.75, 0.2), #relative position
     legend.title = strataName,
     xlab = "Time (years)",
     ## Global elements:
-    ggtheme = mySurvTheme,
+    ggtheme = MY_SURV_THEME,
     palette = "Dark2",
     linetype = "strata"
   );
