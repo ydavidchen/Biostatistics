@@ -5,20 +5,54 @@
 # Copyright (c) 2018 Y. David Chen
 # Notes: 
 
-load_spreadsheet <- function(path, excludeIDs=NULL) {
+library(doParallel); registerDoParallel(detectCores() - 1);
+library(WriteXLS);
+DATA_DIR <- "~/Dropbox (Christensen Lab)/Christensen Lab - 2018/StatsConsulting_2018/RHXG_study/rhxg_data/";
+
+load_spreadsheet <- function(path, excludeIDs="SD-16-26909", excludePhys="F") {
   #'@description Load each of the 3 worksheets into R
   #'@path path to spreadsheets
   #'@param excludeIDs Accession numbers (rows) to exclude
+  #'@param excludePhys Observer to exclude
   data <- read.csv(path, row.names=1, stringsAsFactors=FALSE);
   if(! is.null(excludeIDs)) data <- subset(data, ! rownames(data) %in% excludeIDs); 
+  if(! is.null(excludePhys)) data <- data[ , ! colnames(data) %in% excludePhys]; 
   return(data);
 }
 
-helper_mcnemar <- function(vec1, vec2) {
-  #'@description Helper function for use in iterative Mcnemar's test function
+custom_heatmap <- function(data, ...) {
+  #'@description Customized pheatmap for consistency
+  #'@param data Numerical data matrix to plot
+  #'@param ... Additional parameters passed to pheatmap
+  require(pheatmap);
+  ph <- pheatmap(
+    data,  
+    color = c("lightgray","black"),
+    border_color = NA,
+    cluster_rows = FALSE,
+    cluster_cols = FALSE,
+    fontsize_col = 13, 
+    legend_breaks = c(0,1),
+    ...
+  ); 
+  return(ph);
+}
+
+helper_twobytwo <- function(vec1, vec2, testFUN) {
+  #'@description Helper function for use in iterative two-by-two discrete tests
   #'@param vec1,vec2 (Column) Vectors with 0/1
+  #'@param testFUN Either `fisher.test` or `mcnemar.test`
   contTab <- table(vec1, vec2);
   contTab <- contTab[c(2,1), c(2,1)];
-  res <- mcnemar.test(contTab, correct=TRUE);
+  print(contTab);
+  res <- testFUN(contTab);
   return(res);
+}
+
+calcMode <- function(vec) {
+  #'@description Helper function to calculate mode of a numeric array
+  #'@param vec Numerical vector
+  uniqv <- unique(vec); 
+  res <- uniqv[which.max(tabulate(match(vec, uniqv)))];
+  return(res); 
 }
