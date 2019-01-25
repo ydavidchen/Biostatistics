@@ -49,10 +49,3 @@ helper_twobytwo <- function(vec1, vec2, testFUN) {
   return(res);
 }
 
-calcMode <- function(vec) {
-  #'@description Helper function to calculate mode of a numeric array
-  #'@param vec Numerical vector
-  uniqv <- unique(vec); 
-  res <- uniqv[which.max(tabulate(match(vec, uniqv)))];
-  return(res); 
-}

@@ -26,21 +26,24 @@ analyze_concord <- function(data1, data2, stratMat, adjMet=NULL) {
     ## Overall:
     res <- helper_twobytwo(data1[ , L], data2[ , L], test=mcnemar.test);
     ck <- psych::cohen.kappa(table(data1[ , L], data2[ , L])); 
-    resOverall <- rbind(resOverall, c(Proportion=1, Physician=L, Kappa=ck$weighted.kappa, Chisq=res$statistic, Pval=res$p.value));
+    acc <- mean(as.logical(data1[ , L]) == ! as.logical(data2[ , L]) ); #note they are opposite
+    resOverall <- rbind(resOverall, c(Proportion=1, Physician=L, Kappa=ck$weighted.kappa, Chisq=res$statistic, Pval=res$p.value, Concordance=acc));
     rm(res);
     
     ##  Confident, non-ambiguous stratum (0):
     obs_confid <- rownames(stratMat)[stratMat[,L] == 0];
     res <- helper_twobytwo(data1[obs_confid, L], data2[obs_confid, L], test=mcnemar.test);
     ck <- psych::cohen.kappa(table(data1[obs_confid, L], data2[obs_confid, L]));
-    resConfid <- rbind(resConfid, c(Proportion=length(obs_confid)/n, Physician=L, Kappa=ck$weighted.kappa, Chisq=res$statistic, Pval=res$p.value));
+    acc <- mean(data1[obs_confid, L] == data2[obs_confid, L]);
+    resConfid <- rbind(resConfid, c(Proportion=length(obs_confid)/n, Physician=L, Kappa=ck$weighted.kappa, Chisq=res$statistic, Pval=res$p.value, Concordance=acc));
     rm(res, ck);
     
     ## Ambiguous stratum (1)
     obs_ambig <- rownames(stratMat)[stratMat[,L] == 1];
     res <- helper_twobytwo(data1[obs_ambig, L], data2[obs_ambig, L], test=mcnemar.test);
     ck <- psych::cohen.kappa(table(data1[obs_ambig, L], data2[obs_ambig, L])); 
-    resAmbig <- rbind(resAmbig, c(Proportion=length(obs_ambig)/n, Physician=L, Kappa=ck$weighted.kappa, Chisq=res$statistic, Pval=res$p.value)); 
+    acc <- mean(data1[obs_ambig, L] == data2[obs_ambig, L]);
+    resAmbig <- rbind(resAmbig, c(Proportion=length(obs_ambig)/n, Physician=L, Kappa=ck$weighted.kappa, Chisq=res$statistic, Pval=res$p.value, Concordance=acc)); 
   }
   
   ## Final processing & packaging for export:
@@ -77,7 +80,8 @@ main <- function() {
   
   ## Inferential statistics:
   resList <- analyze_concord(xg_data, rh_data, ambig_indicator);
-  WriteXLS(resList, ExcelFileName=OUTPUT_XLS); 
+  # WriteXLS(resList, ExcelFileName=OUTPUT_XLS); 
+  resList
 }
 
 main();
