@@ -20,13 +20,14 @@ pfsModels <- list();
 pfs_fu <- data;
 table(pfs_fu$PostBR, useNA="always")
 pfs_fu$Post.BR[pfs_fu$PostBR %in% c("CRu", "CR")] <- "CR/CRu (N=22)";
-pfs_fu$Post.BR[pfs_fu$PostBR %in% c("PR", "SD")] <- "PR/SD (N=17)"; 
+# pfs_fu$Post.BR[pfs_fu$PostBR %in% c("PR", "SD")] <- "PR/SD (N=17)"; #original 
+pfs_fu$Post.BR[pfs_fu$PostBR == "PR"] <- "PR (N=16)"; #reviewer response
 table(pfs_fu$Post.BR) #check
 pfs_fu$Post.BR <- as.factor(pfs_fu$Post.BR); 
 
 pfsModels[["postBR"]] <- survfit(
   Surv(time=pfs_years, event=pfs_status) ~ Post.BR, 
-  data = pfs_fu
+  data = subset(pfs_fu, Post.BR %in% c("CR/CRu (N=22)","PR (N=16)"))
 );
 pfsModels[["postBR"]]
 
