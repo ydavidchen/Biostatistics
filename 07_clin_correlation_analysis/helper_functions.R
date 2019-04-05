@@ -10,11 +10,11 @@ library(gdata);
 library(ggplot2);
 library(gridExtra);
 
-load_clin_data <- function(path="./data/Comparisons for SYNERGY.xlsx", sheet=c(16,17)) {
+load_clin_data <- function(sheet, path="./data/Comparisons for SYNERGY.xlsx") {
   #'@description Helper function to load data from multi-tab spreadsheet shared
   #'@param path Path to data
   #'@param sheet Either 16 or 17 (based on data shared)
-  if(length(sheet) != 1) stop(paste("You must pick a sheet!, either", sheet));
+  if(length(sheet) != 1 && ! sheet %in% 1:16) stop(paste("You must pick a sheet!, either", sheet));
   data <- read.xls(path, sheet=sheet, stringsAsFactors=FALSE);
   return(data);
 }
@@ -77,6 +77,50 @@ runCorTests <- function(joinedMat, features, dvName, verbose=TRUE,
   return(resTable);
 }
 
+runUnivarLayoutCorTest <- function(bivarMat=NULL, visualize=FALSE, what2Return=c("table","plot.object")) {
+  #'@description Run univariate correlation analysis pipeline 
+  #'@param bivarMat 2-column data structure, namely x and y
+  #'@param visualize Whether ggplot should be used to visualize scatter plots
+  #'@param what2Return Either "table" (for binding) or "plot.object"
+  
+  iv <- bivarMat[ , 1];
+  dv <- bivarMat[ , 2];
+  
+  cTest <- cor.test(iv, dv, method="pearson"); 
+  rho <- cTest$estimate;
+  pval <- cTest$p.value;
+  
+  print(paste("rho:", round(rho, 2) ));
+  print(paste("p-value:", signif(pval, 2) )); 
+  
+  if(visualize) {
+    formattedPval <- ifelse(
+      pval < 0.01, 
+      sprintf("%0.2e", signif(pval, 2)), 
+      round(pval, 2)
+    );
+    
+    titleLabel <- paste0(
+      "rho = ", round(rho, 2), 
+      ", p = ", formattedPval 
+    );
+    
+    ivName <- colnames(bivarMat)[1];
+    dvName <- colnames(bivarMat)[2];
+    
+    plt <- ggplot(bivarMat, aes_string(ivName, dvName)) +
+      geom_jitter(color="deepskyblue") +
+      xlab(gsub(".", " ", ivName, fixed=TRUE)) +
+      ylab(gsub(".", " ", dvName, fixed=TRUE)) +
+      ggtitle(titleLabel) + 
+      SCATTER_THEME;
+    
+    if(what2Return == "plot.object") return(plt);
+  }
+  
+  return(c(rho=rho, pval=pval));
+}
+
 
 SCATTER_THEME <- theme_classic() +
   theme(axis.text=element_text(size=10,color="black"), 
@@ -84,4 +128,3 @@ SCATTER_THEME <- theme_classic() +
         title=element_text(size=12, color="black", face="bold"),
         legend.position="none", legend.title=element_blank(),legend.text=element_text(size=18,color="black"),
         strip.text.x=element_text(size=18,colour="black",face="bold"));
-
